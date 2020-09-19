@@ -24,6 +24,10 @@
 // displayed correctly with other OS.
 #define SHOWMAP
 
+#define COS(v) ((int)(CosTable[(v)&255])   -127)
+#define SIN(v) ((int)(CosTable[(v+64)&255])-127)
+
+
 char DrawCompleteColumn();
 
 extern unsigned char CosTable[];
@@ -205,8 +209,8 @@ void main()
 	PosX=(8<<8)+128;
 	PosY=(7<<8)+128;
 
-    DirX=((int)(CosTable[(PosAngle)&255])   -127);
-    DirY=((int)(CosTable[(PosAngle+64)&255])-127);
+    DirX=COS(PosAngle); // ((int)(CosTable[(PosAngle)&255])   -127);
+    DirY=SIN(PosAngle); // ((int)(CosTable[(PosAngle+64)&255])-127);
 
 	hires();
 	ink(3);

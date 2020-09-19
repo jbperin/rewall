@@ -1,4 +1,3 @@
-
 void Player(){
     // Handle player movement.
     // Update angle and coordinates
@@ -6,13 +5,13 @@ void Player(){
     {
     case 8:	// gauche => tourne gauche
         PosAngle+=16;
-        DirX=((int)(CosTable[(PosAngle)&255])   -127);
-        DirY=((int)(CosTable[(PosAngle+64)&255])-127);
+        DirX=COS(PosAngle);
+        DirY=SIN(PosAngle);
         break;
     case 9:	// droite => tourne droite
         PosAngle-=16;
-        DirX=((int)(CosTable[(PosAngle)&255])   -127);
-        DirY=((int)(CosTable[(PosAngle+64)&255])-127);
+        DirX=COS(PosAngle);
+        DirY=SIN(PosAngle);
         break;
     case 10: // bas => recule
         PosX-=DirX;
