@@ -26,12 +26,17 @@
 
 #define COS(v) ((int)(CosTable[(v)&255])   -127)
 #define SIN(v) ((int)(CosTable[(v+64)&255])-127)
-
+// #define max(a,b)            (((a) > (b)) ? (a) : (b))
+// #define min(a,b)            (((a) < (b)) ? (a) : (b))
+#define abs(x)                 (((x)<0)?-(x):(x))
 
 char DrawCompleteColumn();
 
 extern unsigned char CosTable[];
 extern unsigned char Labyrinthe[];
+
+extern signed char DeltaX, DeltaY;
+extern unsigned char Norm;
 
 #include "tabcolor.c"
 
@@ -55,6 +60,12 @@ unsigned char YPos;
 
 #include "player.c"
 
+void myNorm (signed char dX, signed char dY, unsigned char * norm){
+    DeltaY = dY;
+    DeltaX = dX;
+    norm_8();
+    *norm = Norm;
+}
 
 void Raycast()
 {
@@ -63,11 +74,14 @@ void Raycast()
 	unsigned char	y_value;
 
 	int				xx,yy;
-	int				ix,iy;
+	signed char 	ix,iy;
 
 	unsigned int	distance;
 
 	unsigned int	d_step;
+    // signed int      dx, dy;
+    // unsigned char   nbShift;
+    // unsigned char   norm;
 
 #ifdef SHOWMAP
 	// Clean the buffer ;)
@@ -85,8 +99,8 @@ void Raycast()
 		yy=PosY;
 
 		// Launch a ray scanning...
-		ix=((int)(CosTable[(angle)&255]>>1)   -64);
-		iy=((int)(CosTable[(angle+64)&255]>>1)-64);
+		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
+		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 		distance=0;
 
 		// http://www.permadi.com/tutorial/raycast/rayc8.html
@@ -103,7 +117,7 @@ void Raycast()
 		// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
 		// ray and it is -30 degrees for the rightmost ray.
 
-		d_step=((unsigned int)CosTable[(256+i-20)&255])<<1;	// Fishball nearly gone
+		d_step=((unsigned int)CosTable[((unsigned char)(i-20))])<<1;	// Fishball nearly gone
 
 
 		// Do the raycast
@@ -116,11 +130,23 @@ void Raycast()
 			yy+=iy;
 			distance+=d_step;
 		}
+        // dx = abs(PosX - xx);
+        // dy = abs(PosY - yy);
+        // nbShift = 0;
+        // while ((dx > 128) || (dy > 128)) {
+        //     dx>>=1;
+        //     dy>>=1;
+        //     nbShift ++;
+        // }
+        // myNorm (((signed char)dx), ((signed char)dy), &norm);
+
 
 		// Compute the distance
 		distance>>=4;
 		distance=(64<<8)/distance;
 		
+        // distance = ((unsigned int)norm) << nbShift;
+
         // Fake perspective test
 		if (distance>100)
 		{
