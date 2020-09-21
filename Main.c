@@ -60,13 +60,6 @@ unsigned char YPos;
 
 #include "player.c"
 
-void myNorm (signed char dX, signed char dY, unsigned char * norm){
-    DeltaY = dY;
-    DeltaX = dX;
-    norm_8();
-    *norm = Norm;
-}
-
 void Raycast()
 {
 	unsigned char	i;
