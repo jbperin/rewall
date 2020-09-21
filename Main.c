@@ -79,9 +79,6 @@ void Raycast()
 	unsigned int	distance;
 
 	unsigned int	d_step;
-    // signed int      dx, dy;
-    // unsigned char   nbShift;
-    // unsigned char   norm;
 
 #ifdef SHOWMAP
 	// Clean the buffer ;)
@@ -130,22 +127,11 @@ void Raycast()
 			yy+=iy;
 			distance+=d_step;
 		}
-        // dx = abs(PosX - xx);
-        // dy = abs(PosY - yy);
-        // nbShift = 0;
-        // while ((dx > 128) || (dy > 128)) {
-        //     dx>>=1;
-        //     dy>>=1;
-        //     nbShift ++;
-        // }
-        // myNorm (((signed char)dx), ((signed char)dy), &norm);
-
 
 		// Compute the distance
 		distance>>=4;
 		distance=(64<<8)/distance;
 		
-        // distance = ((unsigned int)norm) << nbShift;
 
         // Fake perspective test
 		if (distance>100)
