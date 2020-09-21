@@ -60,18 +60,31 @@ unsigned char YPos;
 
 #include "player.c"
 
+// tab_Ci_int[ii] = 2^18 / CosTable[abs(ii-20)])*2
+int tab_Ci_int[] = {
+ 548, 546, 544, 539, 537, 535, 533, 531
+, 529, 526, 524, 524, 522, 520, 520, 518
+, 518, 518, 518, 518, 516, 518, 518, 518
+, 518, 518, 520, 520, 522, 524, 524, 526
+, 529, 531, 533, 535, 537, 539, 544, 546
+};
+
+extern unsigned char idx16;
+extern int				xx,yy;
+extern signed char 	ix,iy;
+extern unsigned int	distance;
+
+extern unsigned char 	nbStep;
+extern unsigned char	angle;
+extern unsigned char	y_value;
+
 void Raycast()
 {
 	unsigned char	i;
-	unsigned char	angle;
-	unsigned char	y_value;
 
-	int				xx,yy;
-	signed char 	ix,iy;
+	// int				xx,yy;
+	// signed char 	ix,iy;
 
-	unsigned int	distance;
-
-	unsigned int	d_step;
 
 #ifdef SHOWMAP
 	// Clean the buffer ;)
@@ -107,38 +120,48 @@ void Raycast()
 		// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
 		// ray and it is -30 degrees for the rightmost ray.
 
-		d_step=((unsigned int)CosTable[((unsigned char)(i-20))])<<1;	// Fishball nearly gone
-
-
+		nbStep = 0;
+		idx16 = (xx>>8) + ((yy>>8)<<4);
 		// Do the raycast
-		while (!Labyrinthe[(xx>>8) + ((yy>>8)<<4)])
+		while (!Labyrinthe[idx16])
 		{
 #ifdef SHOWMAP
-			FlagScanned[(xx>>8) + ((yy>>8)<<4)]=1;
+			FlagScanned[idx16]=1;
 #endif
 			xx+=ix;
 			yy+=iy;
-			distance+=d_step;
+
+			// nbStep++;
+			asm ("inc _nbStep;");
+
+			// idx16 = (xx>>8) + ((yy>>8)<<4);
+			asm(
+				"lda _yy+1;"
+				"asl;"
+				"asl;"
+				"asl;"
+				"asl;"
+				"clc;"
+				"adc _xx+1;"
+				"sta _idx16;"
+			);
 		}
 
 		// Compute the distance
-		distance>>=4;
-		distance=(64<<8)/distance;
+		distance = tab_Ci_int[i]/nbStep;
 		
-
         // Fake perspective test
+		//   0=Full size block (200 high)
+		// 100=Nothing drawn (0 high, horizontal single pixel)
 		if (distance>100)
 		{
-			y_value=0;
+			TableVerticalPos[i]=0;
 		}
 		else
 		{
-			y_value=100-distance;
+			TableVerticalPos[i]=100-distance;
 		}
-
-		//   0=Full size block (200 high)
-		// 100=Nothing drawn (0 high, horizontal single pixel)
-		TableVerticalPos[i]=y_value;
+		
 		angle--;
 	}
 }
