@@ -24,27 +24,23 @@
 // displayed correctly with other OS.
 #define SHOWMAP
 
-#define COS(v) ((int)(CosTable[(v)&255])   -127)
-#define SIN(v) ((int)(CosTable[(v+64)&255])-127)
+#define COS(v) ((int)(CosTable[((unsigned char)v)])   -127)
+#define SIN(v) ((int)(CosTable[((unsigned char)(v+64))])-127)
 // #define max(a,b)            (((a) > (b)) ? (a) : (b))
 // #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #define abs(x)                 (((x)<0)?-(x):(x))
 
 char DrawCompleteColumn();
 
-extern unsigned char CosTable[];
-extern unsigned char Labyrinthe[];
-
-extern signed char DeltaX, DeltaY;
-extern unsigned char Norm;
+extern unsigned char        CosTable[];
+extern unsigned char        Labyrinthe[];
 
 #include "tabcolor.c"
 
 unsigned char ColorDraw;
 
 #ifdef SHOWMAP
-
-unsigned char FlagScanned[16*16];
+unsigned char   FlagScanned[16*16];
 #endif 
 
 unsigned char	TableVerticalPos[40];
@@ -84,18 +80,18 @@ int tab_Ci_int[] = {
 
 extern unsigned char    idx16;
 extern signed int	    xx,yy;
-extern signed char 	    ix,iy;
-extern unsigned char    distance;
+extern signed int 	    ix,iy;
 
 extern unsigned char 	nbStep;
+extern unsigned char    distance;
+
 extern unsigned char	angle;
+extern unsigned char    indexAngle;
 
 extern unsigned int     div16b8_dividend;
 
 void Raycast()
 {
-	unsigned char	i;
-
 #ifdef SHOWMAP
 	// Clean the buffer ;)
     memset(FlagScanned, 0, 255);
@@ -105,15 +101,16 @@ void Raycast()
 
 	// Start angle
 	angle=PosAngle+20;
-	for (i=0;i<40;i++)
+
+	for (indexAngle=0;indexAngle<40;indexAngle++)
 	{	  
 		// Vertical scan
 		xx=PosX;
 		yy=PosY;
 
 		// Launch a ray scanning...
-		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
-		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
+		ix=((signed int)(CosTable[((unsigned char)angle)]>>1)   -64);
+		iy=((signed int)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 
 
 		// nbStep = 0;
@@ -138,24 +135,28 @@ void Raycast()
 #ifdef SHOWMAP
 			FlagScanned[idx16]=1;
 #endif
-			xx+=ix;
-            // asm ("lda _xx;"
-            //     "clc;"
-            //     "adc _ix;"
-            //     "sta _xx;"
-            //     "lda _xx+1;"
-            //     "adc #0;"
-            //     "sta _xx+1;"
-            // );
-			yy+=iy;
-            // asm ("lda _yy;"
-            //     "clc;"
-            //     "adc _iy;"
-            //     "sta _yy;"
-            //     "lda _yy+1;"
-            //     "adc #0;"
-            //     "sta _yy+1;"
-            // );
+
+			// xx+=ix;
+            asm (
+                "    clc;"
+                "    lda _xx;"
+                "    adc _ix;"
+                "    sta _xx;"
+                "    lda _xx+1;"
+                "    adc _ix+1;"
+                "    sta _xx+1;"
+            );
+
+			// yy+=iy;
+            asm (
+                "    clc;"
+                "    lda _yy;"
+                "    adc _iy;"
+                "    sta _yy;"
+                "    lda _yy+1;"
+                "    adc _iy+1;"
+                "    sta _yy+1;"
+            );
 
 			// nbStep++;
 			asm ("inc _nbStep;");
@@ -174,9 +175,20 @@ void Raycast()
 		}
 
 		//
-        // Compute distance = tab_Ci_int[i]/nbStep;
+        // Compute distance = tab_Ci_int[indexAngle]/nbStep;
         //
-        div16b8_dividend = tab_Ci_int[i];
+
+        // div16b8_dividend = tab_Ci_int[indexAngle];
+        asm (
+            " lda _indexAngle;"
+            " asl; "
+            " tay; "
+            " lda _tab_Ci_int,y;"
+            " sta _div16b8_dividend;"
+            " iny;"
+            " lda _tab_Ci_int,y;"
+            " sta _div16b8_dividend+1;"
+        )
 
         // http://forums.nesdev.com/viewtopic.php?p=895#p895
         asm(
@@ -203,11 +215,11 @@ void Raycast()
 		// 100=Nothing drawn (0 high, horizontal single pixel)
 		if (distance>100)
 		{
-			TableVerticalPos[i]=0;
+			TableVerticalPos[indexAngle]=0;
 		}
 		else
 		{
-			TableVerticalPos[i]=100-distance;
+			TableVerticalPos[indexAngle]=100-distance;
 		}
 		
 		// angle--;
