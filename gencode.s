@@ -17,6 +17,8 @@ _nbStep     .dsb 1
 ; unsigned char	angle;
 _angle      .dsb 1
 
+; unsigned char    indexAngle;
+_indexAngle .dsb 1
 
 ; unsigned int _div16b8_dividend;
 _div16b8_dividend         .dsb 2
