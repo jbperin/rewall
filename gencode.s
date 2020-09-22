@@ -1,3 +1,28 @@
+.zero
+; unsigned char idx16
+_idx16      .dsb 1
+; int xx, yy
+_xx         .dsb 2
+_yy          .dsb 2
+; signed char ix, iy
+_ix          .dsb 1
+_iy          .dsb 1
+
+; unsigned int	distance;
+_distance   .dsb 1
+
+; unsigned char 	nbStep;
+_nbStep     .dsb 1
+
+; unsigned char	angle;
+_angle      .dsb 1
+
+
+; unsigned int _div16b8_dividend;
+_div16b8_dividend         .dsb 2
+
+
+.text
 
 _DrawColumn
  sta $a000+0,x

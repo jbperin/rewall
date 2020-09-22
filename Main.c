@@ -26,12 +26,17 @@
 
 #define COS(v) ((int)(CosTable[(v)&255])   -127)
 #define SIN(v) ((int)(CosTable[(v+64)&255])-127)
-
+// #define max(a,b)            (((a) > (b)) ? (a) : (b))
+// #define min(a,b)            (((a) < (b)) ? (a) : (b))
+#define abs(x)                 (((x)<0)?-(x):(x))
 
 char DrawCompleteColumn();
 
 extern unsigned char CosTable[];
 extern unsigned char Labyrinthe[];
+
+extern signed char DeltaX, DeltaY;
+extern unsigned char Norm;
 
 #include "tabcolor.c"
 
@@ -55,19 +60,41 @@ unsigned char YPos;
 
 #include "player.c"
 
+// http://www.permadi.com/tutorial/raycast/rayc8.html
+//
+// Before drawing the wall, there is one problem that must be taken care of. 
+// This problem is known as the "fishbowl effect." 
+// Fishbowl effect happens because ray-casting implementation mixes polar coordinate and Cartesian coordinate together. 
+// Therefore, using the above formula on wall slices that are not directly in front of the viewer will 
+// gives a longer distance. This is not what we want because it will cause a viewing distortion such as 
+// illustrated below.		
+// Thus to remove the viewing distortion, the resulting distance obtained from equations in Figure 17 
+// must be multiplied by cos(BETA); where BETA is the angle of the ray that is being cast relative to 
+// the viewing angle. On the figure above, the viewing angle (ALPHA) is 90 degrees because the player 
+// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
+// ray and it is -30 degrees for the rightmost ray.
+// tab_Ci_int[ii] = 2^18 / CosTable[abs(ii-20)])*2
+int tab_Ci_int[] = {
+ 548, 546, 544, 539, 537, 535, 533, 531
+, 529, 526, 524, 524, 522, 520, 520, 518
+, 518, 518, 518, 518, 516, 518, 518, 518
+, 518, 518, 520, 520, 522, 524, 524, 526
+, 529, 531, 533, 535, 537, 539, 544, 546
+};
+
+extern unsigned char    idx16;
+extern signed int	    xx,yy;
+extern signed char 	    ix,iy;
+extern unsigned char    distance;
+
+extern unsigned char 	nbStep;
+extern unsigned char	angle;
+
+extern unsigned int     div16b8_dividend;
 
 void Raycast()
 {
 	unsigned char	i;
-	unsigned char	angle;
-	unsigned char	y_value;
-
-	int				xx,yy;
-	int				ix,iy;
-
-	unsigned int	distance;
-
-	unsigned int	d_step;
 
 #ifdef SHOWMAP
 	// Clean the buffer ;)
@@ -85,56 +112,106 @@ void Raycast()
 		yy=PosY;
 
 		// Launch a ray scanning...
-		ix=((int)(CosTable[(angle)&255]>>1)   -64);
-		iy=((int)(CosTable[(angle+64)&255]>>1)-64);
-		distance=0;
+		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
+		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 
-		// http://www.permadi.com/tutorial/raycast/rayc8.html
-		//
-		// Before drawing the wall, there is one problem that must be taken care of. 
-		// This problem is known as the "fishbowl effect." 
-		// Fishbowl effect happens because ray-casting implementation mixes polar coordinate and Cartesian coordinate together. 
-		// Therefore, using the above formula on wall slices that are not directly in front of the viewer will 
-		// gives a longer distance. This is not what we want because it will cause a viewing distortion such as 
-		// illustrated below.		
-		// Thus to remove the viewing distortion, the resulting distance obtained from equations in Figure 17 
-		// must be multiplied by cos(BETA); where BETA is the angle of the ray that is being cast relative to 
-		// the viewing angle. On the figure above, the viewing angle (ALPHA) is 90 degrees because the player 
-		// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
-		// ray and it is -30 degrees for the rightmost ray.
 
-		d_step=((unsigned int)CosTable[(256+i-20)&255])<<1;	// Fishball nearly gone
+		// nbStep = 0;
+		asm ("lda #0;"
+            "sta _nbStep;");
 
+		// idx16 = (xx>>8) + ((yy>>8)<<4);
+        asm(
+            "lda _yy+1;"
+            "asl;"
+            "asl;"
+            "asl;"
+            "asl;"
+            "clc;"
+            "adc _xx+1;"
+            "sta _idx16;"
+        );
 
 		// Do the raycast
-		while (!Labyrinthe[(xx>>8) + ((yy>>8)<<4)])
+		while (!Labyrinthe[idx16])
 		{
 #ifdef SHOWMAP
-			FlagScanned[(xx>>8) + ((yy>>8)<<4)]=1;
+			FlagScanned[idx16]=1;
 #endif
 			xx+=ix;
+            // asm ("lda _xx;"
+            //     "clc;"
+            //     "adc _ix;"
+            //     "sta _xx;"
+            //     "lda _xx+1;"
+            //     "adc #0;"
+            //     "sta _xx+1;"
+            // );
 			yy+=iy;
-			distance+=d_step;
+            // asm ("lda _yy;"
+            //     "clc;"
+            //     "adc _iy;"
+            //     "sta _yy;"
+            //     "lda _yy+1;"
+            //     "adc #0;"
+            //     "sta _yy+1;"
+            // );
+
+			// nbStep++;
+			asm ("inc _nbStep;");
+
+			// idx16 = (xx>>8) + ((yy>>8)<<4);
+			asm(
+				"lda _yy+1;"
+				"asl;"
+				"asl;"
+				"asl;"
+				"asl;"
+				"clc;"
+				"adc _xx+1;"
+				"sta _idx16;"
+			);
 		}
 
-		// Compute the distance
-		distance>>=4;
-		distance=(64<<8)/distance;
-		
+		//
+        // Compute distance = tab_Ci_int[i]/nbStep;
+        //
+        div16b8_dividend = tab_Ci_int[i];
+
+        // http://forums.nesdev.com/viewtopic.php?p=895#p895
+        asm(
+            "  ldx #16;"           
+            "  lda #0;"
+            "divloop;"
+            "  asl _div16b8_dividend;"
+            "  rol _div16b8_dividend+1;"
+            "  rol;"
+            "  cmp _nbStep;"
+            "  bcc no_sub;"
+            "  sbc _nbStep;"
+            "  inc _div16b8_dividend;"
+            "no_sub;"
+            "  dex;"
+            "  bne divloop;"
+            "  lda _div16b8_dividend;"
+            "  sta _distance;"
+        );
+
+
         // Fake perspective test
+		//   0=Full size block (200 high)
+		// 100=Nothing drawn (0 high, horizontal single pixel)
 		if (distance>100)
 		{
-			y_value=0;
+			TableVerticalPos[i]=0;
 		}
 		else
 		{
-			y_value=100-distance;
+			TableVerticalPos[i]=100-distance;
 		}
-
-		//   0=Full size block (200 high)
-		// 100=Nothing drawn (0 high, horizontal single pixel)
-		TableVerticalPos[i]=y_value;
-		angle--;
+		
+		// angle--;
+        asm ("dec _angle;");
 	}
 }
 
