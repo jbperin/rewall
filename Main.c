@@ -80,7 +80,7 @@ int tab_Ci_int[] = {
 
 extern unsigned char    idx16;
 extern signed int	    xx,yy;
-extern signed char 	    ix,iy;
+extern signed int 	    ix,iy;
 
 extern unsigned char 	nbStep;
 extern unsigned char    distance;
@@ -101,7 +101,7 @@ void Raycast()
 
 	// Start angle
 	angle=PosAngle+20;
-    
+
 	for (indexAngle=0;indexAngle<40;indexAngle++)
 	{	  
 		// Vertical scan
@@ -109,8 +109,8 @@ void Raycast()
 		yy=PosY;
 
 		// Launch a ray scanning...
-		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
-		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
+		ix=((signed int)(CosTable[((unsigned char)angle)]>>1)   -64);
+		iy=((signed int)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 
 
 		// nbStep = 0;
@@ -135,24 +135,28 @@ void Raycast()
 #ifdef SHOWMAP
 			FlagScanned[idx16]=1;
 #endif
-			xx+=ix;
-            // asm ("lda _xx;"
-            //     "clc;"
-            //     "adc _ix;"
-            //     "sta _xx;"
-            //     "lda _xx+1;"
-            //     "adc #0;"
-            //     "sta _xx+1;"
-            // );
-			yy+=iy;
-            // asm ("lda _yy;"
-            //     "clc;"
-            //     "adc _iy;"
-            //     "sta _yy;"
-            //     "lda _yy+1;"
-            //     "adc #0;"
-            //     "sta _yy+1;"
-            // );
+
+			// xx+=ix;
+            asm (
+                "    clc;"
+                "    lda _xx;"
+                "    adc _ix;"
+                "    sta _xx;"
+                "    lda _xx+1;"
+                "    adc _ix+1;"
+                "    sta _xx+1;"
+            );
+
+			// yy+=iy;
+            asm (
+                "    clc;"
+                "    lda _yy;"
+                "    adc _iy;"
+                "    sta _yy;"
+                "    lda _yy+1;"
+                "    adc _iy+1;"
+                "    sta _yy+1;"
+            );
 
 			// nbStep++;
 			asm ("inc _nbStep;");

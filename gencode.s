@@ -4,9 +4,9 @@ _idx16      .dsb 1
 ; int xx, yy
 _xx         .dsb 2
 _yy          .dsb 2
-; signed char ix, iy
-_ix          .dsb 1
-_iy          .dsb 1
+; signed int ix, iy
+_ix          .dsb 2
+_iy          .dsb 2
 
 ; unsigned int	distance;
 _distance   .dsb 1
