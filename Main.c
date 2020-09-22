@@ -60,6 +60,19 @@ unsigned char YPos;
 
 #include "player.c"
 
+// http://www.permadi.com/tutorial/raycast/rayc8.html
+//
+// Before drawing the wall, there is one problem that must be taken care of. 
+// This problem is known as the "fishbowl effect." 
+// Fishbowl effect happens because ray-casting implementation mixes polar coordinate and Cartesian coordinate together. 
+// Therefore, using the above formula on wall slices that are not directly in front of the viewer will 
+// gives a longer distance. This is not what we want because it will cause a viewing distortion such as 
+// illustrated below.		
+// Thus to remove the viewing distortion, the resulting distance obtained from equations in Figure 17 
+// must be multiplied by cos(BETA); where BETA is the angle of the ray that is being cast relative to 
+// the viewing angle. On the figure above, the viewing angle (ALPHA) is 90 degrees because the player 
+// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
+// ray and it is -30 degrees for the rightmost ray.
 // tab_Ci_int[ii] = 2^18 / CosTable[abs(ii-20)])*2
 int tab_Ci_int[] = {
  548, 546, 544, 539, 537, 535, 533, 531
@@ -69,23 +82,19 @@ int tab_Ci_int[] = {
 , 529, 531, 533, 535, 537, 539, 544, 546
 };
 
-extern unsigned char idx16;
-extern int				xx,yy;
-extern signed char 	ix,iy;
-extern unsigned char distance;
+extern unsigned char    idx16;
+extern signed int	    xx,yy;
+extern signed char 	    ix,iy;
+extern unsigned char    distance;
 
 extern unsigned char 	nbStep;
 extern unsigned char	angle;
 
-extern unsigned int div16b8_dividend;
+extern unsigned int     div16b8_dividend;
 
 void Raycast()
 {
 	unsigned char	i;
-
-	// int				xx,yy;
-	// signed char 	ix,iy;
-
 
 #ifdef SHOWMAP
 	// Clean the buffer ;)
@@ -106,19 +115,6 @@ void Raycast()
 		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
 		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 
-		// http://www.permadi.com/tutorial/raycast/rayc8.html
-		//
-		// Before drawing the wall, there is one problem that must be taken care of. 
-		// This problem is known as the "fishbowl effect." 
-		// Fishbowl effect happens because ray-casting implementation mixes polar coordinate and Cartesian coordinate together. 
-		// Therefore, using the above formula on wall slices that are not directly in front of the viewer will 
-		// gives a longer distance. This is not what we want because it will cause a viewing distortion such as 
-		// illustrated below.		
-		// Thus to remove the viewing distortion, the resulting distance obtained from equations in Figure 17 
-		// must be multiplied by cos(BETA); where BETA is the angle of the ray that is being cast relative to 
-		// the viewing angle. On the figure above, the viewing angle (ALPHA) is 90 degrees because the player 
-		// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
-		// ray and it is -30 degrees for the rightmost ray.
 
 		// nbStep = 0;
 		asm ("lda #0;"
@@ -177,37 +173,29 @@ void Raycast()
 			);
 		}
 
-		// Compute the distance
-		// distance = tab_Ci_int[i]/nbStep;
+		//
+        // Compute distance = tab_Ci_int[i]/nbStep;
+        //
         div16b8_dividend = tab_Ci_int[i];
 
-// http://forums.nesdev.com/viewtopic.php?p=895#p895
-// ;;; div16
-// ;   Given a 16-bit number in dividend, divides it by divisor and
-// ;   stores the result in dividend.
-// ;   out: A: remainder; X: 0; Y: unchanged
-			asm(
-                
-
-				"  ldx #16;"           
-                "  lda #0;"
-                "divloop;"
-                "  asl _div16b8_dividend;"
-                "  rol _div16b8_dividend+1;"
-                "  rol;"
-                "  cmp _nbStep;"
-                "  bcc no_sub;"
-                "  sbc _nbStep;"
-                "  inc _div16b8_dividend;"
-                "no_sub;"
-                "  dex;"
-                "  bne divloop;"
-                "  lda _div16b8_dividend;"
-                "  sta _distance;"
-                // "  lda #0;"  //"  lda _div16b8_dividend+1;"
-                // "  sta _distance+1;"
-
-            );
+        // http://forums.nesdev.com/viewtopic.php?p=895#p895
+        asm(
+            "  ldx #16;"           
+            "  lda #0;"
+            "divloop;"
+            "  asl _div16b8_dividend;"
+            "  rol _div16b8_dividend+1;"
+            "  rol;"
+            "  cmp _nbStep;"
+            "  bcc no_sub;"
+            "  sbc _nbStep;"
+            "  inc _div16b8_dividend;"
+            "no_sub;"
+            "  dex;"
+            "  bne divloop;"
+            "  lda _div16b8_dividend;"
+            "  sta _distance;"
+        );
 
 
         // Fake perspective test
@@ -222,7 +210,8 @@ void Raycast()
 			TableVerticalPos[i]=100-distance;
 		}
 		
-		angle--;
+		// angle--;
+        asm ("dec _angle;");
 	}
 }
 
