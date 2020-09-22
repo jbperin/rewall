@@ -72,11 +72,12 @@ int tab_Ci_int[] = {
 extern unsigned char idx16;
 extern int				xx,yy;
 extern signed char 	ix,iy;
-extern unsigned int	distance;
+extern unsigned char distance;
 
 extern unsigned char 	nbStep;
 extern unsigned char	angle;
-extern unsigned char	y_value;
+
+extern unsigned int div16b8_dividend;
 
 void Raycast()
 {
@@ -104,7 +105,6 @@ void Raycast()
 		// Launch a ray scanning...
 		ix=((signed char)(CosTable[((unsigned char)angle)]>>1)   -64);
 		iy=((signed char)(CosTable[((unsigned char)(angle+64))]>>1)-64);
-		distance=0;
 
 		// http://www.permadi.com/tutorial/raycast/rayc8.html
 		//
@@ -120,8 +120,22 @@ void Raycast()
 		// is facing straight upward. Because we have 60 degrees field of view, BETA is 30 degrees for the leftmost 
 		// ray and it is -30 degrees for the rightmost ray.
 
-		nbStep = 0;
-		idx16 = (xx>>8) + ((yy>>8)<<4);
+		// nbStep = 0;
+		asm ("lda #0;"
+            "sta _nbStep;");
+
+		// idx16 = (xx>>8) + ((yy>>8)<<4);
+        asm(
+            "lda _yy+1;"
+            "asl;"
+            "asl;"
+            "asl;"
+            "asl;"
+            "clc;"
+            "adc _xx+1;"
+            "sta _idx16;"
+        );
+
 		// Do the raycast
 		while (!Labyrinthe[idx16])
 		{
@@ -129,7 +143,23 @@ void Raycast()
 			FlagScanned[idx16]=1;
 #endif
 			xx+=ix;
+            // asm ("lda _xx;"
+            //     "clc;"
+            //     "adc _ix;"
+            //     "sta _xx;"
+            //     "lda _xx+1;"
+            //     "adc #0;"
+            //     "sta _xx+1;"
+            // );
 			yy+=iy;
+            // asm ("lda _yy;"
+            //     "clc;"
+            //     "adc _iy;"
+            //     "sta _yy;"
+            //     "lda _yy+1;"
+            //     "adc #0;"
+            //     "sta _yy+1;"
+            // );
 
 			// nbStep++;
 			asm ("inc _nbStep;");
@@ -148,8 +178,38 @@ void Raycast()
 		}
 
 		// Compute the distance
-		distance = tab_Ci_int[i]/nbStep;
-		
+		// distance = tab_Ci_int[i]/nbStep;
+        div16b8_dividend = tab_Ci_int[i];
+
+// http://forums.nesdev.com/viewtopic.php?p=895#p895
+// ;;; div16
+// ;   Given a 16-bit number in dividend, divides it by divisor and
+// ;   stores the result in dividend.
+// ;   out: A: remainder; X: 0; Y: unchanged
+			asm(
+                
+
+				"  ldx #16;"           
+                "  lda #0;"
+                "divloop;"
+                "  asl _div16b8_dividend;"
+                "  rol _div16b8_dividend+1;"
+                "  rol;"
+                "  cmp _nbStep;"
+                "  bcc no_sub;"
+                "  sbc _nbStep;"
+                "  inc _div16b8_dividend;"
+                "no_sub;"
+                "  dex;"
+                "  bne divloop;"
+                "  lda _div16b8_dividend;"
+                "  sta _distance;"
+                // "  lda #0;"  //"  lda _div16b8_dividend+1;"
+                // "  sta _distance+1;"
+
+            );
+
+
         // Fake perspective test
 		//   0=Full size block (200 high)
 		// 100=Nothing drawn (0 high, horizontal single pixel)
