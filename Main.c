@@ -222,8 +222,8 @@ void Raycast()
 			TableVerticalPos[indexAngle]=100-distance;
 		}
 		
-		// angle--;
-        asm ("dec _angle;");
+		angle--;
+        // asm ("dec _angle;");
 	}
 }
 
