@@ -1,4 +1,6 @@
 void Player(){
+    int tmpPosX, tmpPosY;
+
     // Handle player movement.
     // Update angle and coordinates
     switch (get())	// key
@@ -14,12 +16,20 @@ void Player(){
         DirY=SIN(PosAngle);
         break;
     case 10: // bas => recule
-        PosX-=DirX;
-        PosY-=DirY;
+        tmpPosX = PosX - 2*DirX;
+        tmpPosY = PosY - 2*DirY;
+        if (!Labyrinthe[(tmpPosX>>8) + ((tmpPosY>>8)<<4)]) {
+            PosX = PosX - DirX;
+            PosY = PosY - DirY;
+        }
         break;
     case 11: // haut => avance
-        PosX+=DirX;
-        PosY+=DirY;
+        tmpPosX = PosX + 2*DirX;
+        tmpPosY = PosY + 2*DirY;
+        if (!Labyrinthe[(tmpPosX>>8) + ((tmpPosY>>8)<<4)]) {
+            PosX = PosX + DirX;
+            PosY = PosY + DirY;
+        }
         break;
     }
 }
