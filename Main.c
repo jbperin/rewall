@@ -101,7 +101,7 @@ void Raycast()
 
 	// Start angle
 	angle=PosAngle+20;
-
+    // lprintf ("X=%d, Y=%d, PosAngle = %d\n", PosX, PosY, PosAngle);
 	for (indexAngle=0;indexAngle<40;indexAngle++)
 	{	  
 		// Vertical scan
@@ -112,6 +112,7 @@ void Raycast()
 		ix=((signed int)(CosTable[((unsigned char)angle)]>>1)   -64);
 		iy=((signed int)(CosTable[((unsigned char)(angle+64))]>>1)-64);
 
+        // lprintf ("{'idx': %d, 'angle': %d, 'iX':%d, 'iY':%d, ",indexAngle, (signed char)angle, ix, iy);
 
 		// nbStep = 0;
 		asm ("lda #0;"
@@ -226,6 +227,7 @@ void Raycast()
         }
 		angle--;
         // asm ("dec _angle;");
+        // lprintf ("'nbStep':%d, 'distance' : %d ,'hauteur' = %d},\n", nbStep, distance, TableVerticalPos[indexAngle]);
 	}
 }
 
