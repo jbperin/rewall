@@ -14,11 +14,11 @@ _DrawCompleteColumn
 
 	ldy	_YPos
 	clc
-	lda _TableMul6Low,y
+	lda _TableMul10Low,y
 	adc #<_DrawColumn
 	sta modif_draw+1
 
-	lda _TableMul6High,y
+	lda _TableMul10High,y
 	adc #>_DrawColumn
 	sta modif_draw+2
 
@@ -59,7 +59,7 @@ modif_erase
 
 
 
-_Labyrinthe
+_Labyrinthe1
 	.byt 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 	.byt 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
 	.byt 1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1
@@ -96,7 +96,7 @@ _Labyrinthe2
 	.byt 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
 
-_Labyrinthe1
+_Labyrinthe
 	.byt 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 	.byt 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
 	.byt 1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1
