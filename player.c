@@ -32,4 +32,5 @@ void Player(){
         }
         break;
     }
+    // printf ("%d %d    ", PosX, PosY);
 }

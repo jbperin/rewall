@@ -173,55 +173,57 @@ void Raycast()
 				"sta _idx16;"
 			);
 		}
+        if (nbStep > 2){
+            //
+            // Compute distance = tab_Ci_int[indexAngle]/nbStep;
+            //
 
-		//
-        // Compute distance = tab_Ci_int[indexAngle]/nbStep;
-        //
+            // div16b8_dividend = tab_Ci_int[indexAngle];
+            asm (
+                " lda _indexAngle;"
+                " asl; "
+                " tay; "
+                " lda _tab_Ci_int,y;"
+                " sta _div16b8_dividend;"
+                " iny;"
+                " lda _tab_Ci_int,y;"
+                " sta _div16b8_dividend+1;"
+            )
 
-        // div16b8_dividend = tab_Ci_int[indexAngle];
-        asm (
-            " lda _indexAngle;"
-            " asl; "
-            " tay; "
-            " lda _tab_Ci_int,y;"
-            " sta _div16b8_dividend;"
-            " iny;"
-            " lda _tab_Ci_int,y;"
-            " sta _div16b8_dividend+1;"
-        )
-
-        // http://forums.nesdev.com/viewtopic.php?p=895#p895
-        asm(
-            "  ldx #16;"           
-            "  lda #0;"
-            "divloop;"
-            "  asl _div16b8_dividend;"
-            "  rol _div16b8_dividend+1;"
-            "  rol;"
-            "  cmp _nbStep;"
-            "  bcc no_sub;"
-            "  sbc _nbStep;"
-            "  inc _div16b8_dividend;"
-            "no_sub;"
-            "  dex;"
-            "  bne divloop;"
-            "  lda _div16b8_dividend;"
-            "  sta _distance;"
-        );
+            // http://forums.nesdev.com/viewtopic.php?p=895#p895
+            asm(
+                "  ldx #16;"           
+                "  lda #0;"
+                "divloop;"
+                "  asl _div16b8_dividend;"
+                "  rol _div16b8_dividend+1;"
+                "  rol;"
+                "  cmp _nbStep;"
+                "  bcc no_sub;"
+                "  sbc _nbStep;"
+                "  inc _div16b8_dividend;"
+                "no_sub;"
+                "  dex;"
+                "  bne divloop;"
+                "  lda _div16b8_dividend;"
+                "  sta _distance;"
+            );
 
 
-        // Fake perspective test
-		//   0=Full size block (200 high)
-		// 100=Nothing drawn (0 high, horizontal single pixel)
-		if (distance>100)
-		{
-			TableVerticalPos[indexAngle]=0;
-		}
-		else
-		{
-			TableVerticalPos[indexAngle]=100-distance;
-		}
-		
+            // Fake perspective test
+            //   0=Full size block (200 high)
+            // 100=Nothing drawn (0 high, horizontal single pixel)
+            if (distance>100)
+            {
+                TableVerticalPos[indexAngle]=0;
+            }
+            else
+            {
+                TableVerticalPos[indexAngle]=100-distance;
+            }
+        } else {
+            TableVerticalPos[indexAngle]=0;
+        }
 		angle--;
         // asm ("dec _angle;");
 	}
