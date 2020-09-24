@@ -7,6 +7,9 @@ _yy          .dsb 2
 ; signed int ix, iy
 _ix          .dsb 2
 _iy          .dsb 2
+; signed int dx, dy
+_dx          .dsb 2
+_dy          .dsb 2
 
 ; unsigned int	distance;
 _distance   .dsb 1

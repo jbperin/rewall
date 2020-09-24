@@ -71,16 +71,17 @@ unsigned char YPos;
 // ray and it is -30 degrees for the rightmost ray.
 // tab_Ci_int[ii] = 2^18 / CosTable[abs(ii-20)])*2
 int tab_Ci_int[] = {
- 548, 546, 544, 539, 537, 535, 533, 531
-, 529, 526, 524, 524, 522, 520, 520, 518
-, 518, 518, 518, 518, 516, 518, 518, 518
-, 518, 518, 520, 520, 522, 524, 524, 526
-, 529, 531, 533, 535, 537, 539, 544, 546
+2194, 2185, 2175, 2158, 2149, 2140, 2131, 2123
+, 2114, 2106, 2097, 2097, 2089, 2081, 2081, 2072
+, 2072, 2072, 2072, 2072, 2064, 2072, 2072, 2072
+, 2072, 2072, 2081, 2081, 2089, 2097, 2097, 2106
+, 2114, 2123, 2131, 2140, 2149, 2158, 2175, 2185
 };
 
 extern unsigned char    idx16;
 extern signed int	    xx,yy;
 extern signed int 	    ix,iy;
+extern signed int 	    dx,dy;
 
 extern unsigned char 	nbStep;
 extern unsigned char    distance;
@@ -107,6 +108,8 @@ void Raycast()
 		// Vertical scan
 		xx=PosX;
 		yy=PosY;
+		dx = 0;
+		dy = 0;
 
 		// Launch a ray scanning...
 		ix=((signed int)(CosTable[((unsigned char)angle)]>>1)   -64);
@@ -137,27 +140,33 @@ void Raycast()
 			FlagScanned[idx16]=1;
 #endif
 
+            dx += ix;
+            dy += iy;
+            xx=PosX + (dx>>2);
+            yy=PosY + (dy>>2);
+
+
 			// xx+=ix;
-            asm (
-                "    clc;"
-                "    lda _xx;"
-                "    adc _ix;"
-                "    sta _xx;"
-                "    lda _xx+1;"
-                "    adc _ix+1;"
-                "    sta _xx+1;"
-            );
+            // asm (
+            //     "    clc;"
+            //     "    lda _xx;"
+            //     "    adc _ix;"
+            //     "    sta _xx;"
+            //     "    lda _xx+1;"
+            //     "    adc _ix+1;"
+            //     "    sta _xx+1;"
+            // );
 
 			// yy+=iy;
-            asm (
-                "    clc;"
-                "    lda _yy;"
-                "    adc _iy;"
-                "    sta _yy;"
-                "    lda _yy+1;"
-                "    adc _iy+1;"
-                "    sta _yy+1;"
-            );
+            // asm (
+            //     "    clc;"
+            //     "    lda _yy;"
+            //     "    adc _iy;"
+            //     "    sta _yy;"
+            //     "    lda _yy+1;"
+            //     "    adc _iy+1;"
+            //     "    sta _yy+1;"
+            // );
 
 			// nbStep++;
 			asm ("inc _nbStep;");
