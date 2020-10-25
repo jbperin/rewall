@@ -71,11 +71,46 @@ unsigned char YPos;
 // ray and it is -30 degrees for the rightmost ray.
 // tab_Ci_int[ii] = 2^18 / CosTable[abs(ii-20)])*2
 int tab_Ci_int[] = {
- 548, 546, 544, 539, 537, 535, 533, 531
-, 529, 526, 524, 524, 522, 520, 520, 518
-, 518, 518, 518, 518, 516, 518, 518, 518
-, 518, 518, 520, 520, 522, 524, 524, 526
-, 529, 531, 533, 535, 537, 539, 544, 546
+ 2194
+, 2185
+, 2175
+, 2158
+, 2149
+, 2140
+, 2131
+, 2123
+, 2114
+, 2106
+, 2097
+, 2097
+, 2089
+, 2081
+, 2081
+, 2072
+, 2072
+, 2072
+, 2072
+, 2072
+, 2064
+, 2072
+, 2072
+, 2072
+, 2072
+, 2072
+, 2081
+, 2081
+, 2089
+, 2097
+, 2097
+, 2106
+, 2114
+, 2123
+, 2131
+, 2140
+, 2149
+, 2158
+, 2175
+, 2185
 };
 
 extern unsigned char    idx16;
@@ -109,8 +144,8 @@ void Raycast()
 		yy=PosY;
 
 		// Launch a ray scanning...
-		ix=((signed int)(CosTable[((unsigned char)angle)]>>1)   -64);
-		iy=((signed int)(CosTable[((unsigned char)(angle+64))]>>1)-64);
+		ix=((signed int)(CosTable[((unsigned char)angle)]>>3)   -16);
+		iy=((signed int)(CosTable[((unsigned char)(angle+64))]>>3)-16);
 
         // lprintf ("{'idx': %d, 'angle': %d, 'iX':%d, 'iY':%d, ",indexAngle, (signed char)angle, ix, iy);
 
